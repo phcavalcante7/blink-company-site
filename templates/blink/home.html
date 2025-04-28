@@ -1,0 +1,136 @@
+{% extends 'blink/base.html' %}
+{% block title %}Blink — Ronin Drop{% endblock %}
+
+{% block content %}
+<!-- HERO / DESTAQUE PRINCIPAL -->
+<section class="relative bg-cover bg-center bg-no-repeat h-[90vh] flex items-center justify-center text-white px-6"
+         style="background-image: url('/media/fundos/hero_kyoto.jpg');">
+  
+  <div class="absolute inset-0 bg-black bg-opacity-60"></div> <!-- overlay escuro -->
+  
+  <div class="relative z-10 text-center max-w-3xl">
+    <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight drop-shadow-lg">BLINK</h1>
+    <p class="mt-4 text-xl md:text-2xl text-zinc-300 font-light">Estilo de rua com alma criativa.</p>
+    
+    <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+      <a href="#drop" class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded shadow-md text-sm font-bold transition">
+        Ver Drop Kyoto
+      </a>
+      <span class="text-sm border border-pink-500 px-4 py-2 rounded-full text-pink-400 bg-zinc-950/40">
+        Na compra de 3+ camisetas, ganhe 5% de desconto.
+      </span>
+    </div>
+  </div>
+</section> 
+
+<!-- DESTAQUES -->
+<section class="bg-[#0f0d15] text-white px-6 py-24">
+  <h2 class="text-3xl font-bold text-center mb-14 tracking-tight">Destaques</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
+    
+    <!-- GRAFFITI -->
+    <a href="/camisetas/grafite-preta/" class="text-center group block">
+      <div class="relative overflow-hidden rounded-xl shadow-xl">
+        <img
+          src="/media/camisetas/jpg/grafite_2_camisetas_preta.jpg"
+          class="w-full h-[460px] object-cover transition duration-300 group-hover:opacity-0 rounded-xl"
+        />
+        <img
+          src="/media/camisetas/jpg/estampa_graffiti_preta.jpg"
+          class="absolute top-0 left-0 w-full h-[460px] object-cover opacity-0 group-hover:opacity-100 transition duration-300 rounded-xl"
+        />
+      </div>
+      <p class="mt-4 text-base text-zinc-300 tracking-wide font-semibold">GRAFFITI</p>
+    </a>
+
+    <!-- ONI -->
+    <a href="/camisetas/oni-branca/" class="text-center group block">
+      <div class="relative overflow-hidden rounded-xl shadow-xl">
+        <img
+          src="/media/camisetas/jpg/oni_2_camisetas_branca.jpg"
+          class="w-full h-[460px] object-cover transition duration-300 group-hover:opacity-0 rounded-xl"
+        />
+        <img
+          src="/media/camisetas/jpg/estampa_oni_branca.jpg"
+          class="absolute top-0 left-0 w-full h-[460px] object-cover opacity-0 group-hover:opacity-100 transition duration-300 rounded-xl"
+        />
+      </div>
+      <p class="mt-4 text-base text-zinc-300 tracking-wide font-semibold">ONI</p>
+    </a>
+
+  </div>
+</section>
+
+
+
+
+<!-- SOBRE A BLINK -->
+<section class="bg-[#0f0d15] text-white px-6 py-20 border-t border-zinc-800">
+  <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-center">
+    <div>
+      <h3 class="text-2xl font-bold mb-4">Sobre nós</h3>
+      <p class="text-zinc-400 leading-relaxed text-sm">
+        A Blink nasceu em 2025 do encontro entre arte e atitude. <br><br>
+        Fundada por dois amigos de infância: Otávio Scalari, o Ionick — fundador da marca — e Pedro H Cavalcante, o PH — cofundador. 
+        A Blink representa mais do que uma marca de roupas: é um corre, uma visão, uma resposta ao tédio estético da moda 
+        convencional. <br><br>
+        Desde moleque, Ionick rabisca o mundo com criatividade. Sempre curtiu desenhar, criar personagens e mergulhar em 
+        universos visuais. Já PH é movido por empreendedorismo e vontade de fazer diferente. 
+        Foi dessa mistura de forças que surgiu a Blink: um espaço onde o design encontra propósito e estilo vira mensagem.<br><br>
+        Cada peça é pensada como uma expressão de identidade.<br>
+        Inspirados pelo streetwear nacional, pela cultura urbana e por tudo que carrega verdade nas ruas, nosso objetivo
+        é vestir quem tem alma criativa, mente livre e espírito de luta.<br><br>
+        Nosso primeiro drop — *Kyoto* — mergulha nas raízes da estética japonesa, misturando tradição e rebeldia visual. 
+        Mas cada coleção segue uma nova direção, uma nova história, uma nova resistência.<br><br>
+        
+        Aqui, a estética é resistência — e cada drop é um manifesto visual. <br>
+        
+        Seja bem-vindo à Blink. <br>
+        Sua nova marca favorita nasceu do corre. <br>
+        E segue nele.
+        
+      </p>
+    </div>
+    <div>
+      <img src="/media/lookbook/japones.png" class="rounded-lg shadow-xl object-cover w-full" />
+    </div>
+  </div>
+</section>
+
+<!-- LOOKBOOK / VISUAL -->
+<section class="bg-[#0f0d15] text-white px-6 py-20">
+  <div class="max-w-6xl mx-auto text-center mb-12">
+    <h2 class="text-3xl font-bold mb-2">Lookbook</h2>
+    <p class="text-zinc-400">Uma imersão visual nos traços e nas ideias por trás do Drop Kyoto</p>
+  </div>
+
+  <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-6">
+    <div class="relative flex flex-col items-center">
+      <h3 class="text-sm text-zinc-300 mb-2">Grafite Blink</h3>
+      <img src="/media/camisetas/png/lookbook/estampa grafite blink - camiseta preta (nova).png"
+           class="object-contain w-full h-64 transition duration-300 hover:scale-105" alt="Grafite Blink">
+    </div>
+
+    <div class="relative flex flex-col items-center">
+      <h3 class="text-sm text-zinc-300 mb-2">Máscara Oni</h3>
+      <img src="/media/camisetas/png/lookbook/estampa oni.png"
+           class="object-contain w-full h-64 transition duration-300 hover:scale-105" alt="Máscara Oni">
+    </div>
+
+    <div class="relative flex flex-col items-center">
+      <h3 class="text-sm text-zinc-300 mb-2">Samurai Blink</h3>
+      <img src="/media/camisetas/png/lookbook/estampa samurai camiseta preta png.png"
+           class="object-contain w-full h-64 transition duration-300 hover:scale-105" alt="Samurai Blink">
+    </div>
+
+    <div class="relative flex flex-col items-center">
+      <h3 class="text-sm text-zinc-300 mb-2">Ondas Koi</h3>
+      <img src="/media/camisetas/png/lookbook/estmpa ondas koi blink - camiseta preta.png"
+           class="object-contain w-full h-64 transition duration-300 hover:scale-105" alt="Ondas Koi">
+    </div>
+  </div>
+</section>
+
+
+{% endblock %}
