@@ -1,0 +1,32 @@
+{% extends 'blink/base.html' %}
+
+{% block title %}Camisetas - Blink{% endblock %}
+
+{% block content %}
+<section class="bg-[#0f0d15] text-white px-6 py-20 min-h-screen">
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-extrabold mb-8 text-center">Todas as Camisetas</h1>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+      {% for camiseta in camisetas %}
+      <div class="rounded-xl overflow-hidden transition-all duration-300"
+           style="background: linear-gradient(to bottom, #1e1b29 0%, #0f0d15 100%); padding: 1.25rem;">
+        <a href="{% url 'produto' slug=camiseta.slug %}">
+          <img src="{{ camiseta.imagens.first.imagem.url }}" alt="{{ camiseta.nome }}"
+               class="w-full h-72 object-contain mx-auto hover:scale-105 transition-transform duration-300" />
+        </a>
+        <div class="text-center mt-3">
+          <h3 class="text-lg font-semibold text-white">{{ camiseta.nome }}</h3>
+          <p class="text-sm text-zinc-400">A partir de R$ {{ camiseta.preco_unitario|floatformat:2 }}</p>
+          <a href="{% url 'produto' slug=camiseta.slug %}" 
+             class="inline-block text-emerald-400 text-sm font-medium hover:underline mt-1">
+            Ver mais →
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    
+  </div>
+</section>
+{% endblock %}
