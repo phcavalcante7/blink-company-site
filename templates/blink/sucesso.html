@@ -1,0 +1,45 @@
+{% extends 'blink/base.html' %}
+
+{% block title %}Pedido Confirmado - Blink{% endblock %}
+
+{% block content %}
+<section class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#5f3069] to-black text-white px-6 py-20">
+
+  <div class="text-center space-y-8 animate-fade-in">
+    <!-- Ícone de sucesso -->
+    <div class="bg-emerald-500 w-20 h-20 flex items-center justify-center rounded-full shadow-lg mx-auto animate-bounce">
+      <svg class="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+    </div>
+
+    <!-- Mensagem -->
+    <h1 class="text-4xl font-extrabold tracking-tight">Pedido Confirmado!</h1>
+    <p class="text-zinc-300 max-w-md mx-auto text-lg">
+      Valeu por fortalecer o corre, você é brabo! 👊<br>
+      Seu pedido foi confirmado com sucesso.<br>
+      Em breve você receberá mais atualizações no seu e-mail e WhatsApp.
+    </p>
+
+    <!-- Botão voltar para home -->
+    <a href="{% url 'home' %}"
+       class="inline-block mt-6 bg-emerald-500 hover:bg-emerald-600 text-black font-bold px-6 py-3 rounded-full transition shadow-lg">
+      Voltar para Home
+    </a>
+  </div>
+
+</section>
+
+<!-- Animação simples de fade -->
+<style>
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 1s ease-out;
+  }
+</style>
+
+{% endblock %}
