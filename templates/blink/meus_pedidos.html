@@ -1,0 +1,60 @@
+{% extends 'blink/base.html' %}
+
+{% block title %}Meus Pedidos - Blink{% endblock %}
+
+{% block content %}
+<section class="bg-[#0f0d15] text-white px-6 py-20 min-h-screen">
+  <div class="max-w-3xl mx-auto space-y-10">
+
+    <!-- Título da página -->
+    <h1 class="text-3xl font-extrabold text-center">📦 Consultar pedidos</h1>
+
+    <!-- Formulário de busca de pedidos por e-mail -->
+    <form method="POST" class="space-y-4 mt-6">
+      {% csrf_token %}
+      <input type="email" name="email" required placeholder="Digite seu e‑mail para ver os pedidos"
+        class="bg-black border border-zinc-600 rounded px-4 py-3 text-sm text-white w-full placeholder-zinc-400"
+        value="{{ email }}">
+      
+      <button type="submit"
+        class="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 transition-all text-white font-bold py-3 rounded-xl text-lg shadow-lg">
+        Ver meus pedidos
+      </button>
+    </form>
+
+    <!-- Listagem dos pedidos -->
+    {% if pedidos %}
+      <div class="space-y-6">
+        {% for pedido in pedidos %}
+          <div class="bg-[#1e1b29] rounded-xl p-6 space-y-4 shadow border border-zinc-700">
+            <!-- Cabeçalho do pedido -->
+            <p class="font-bold text-lg">Pedido #{{ pedido.id }} — {{ pedido.data|date:"d/m/Y H:i" }}</p>
+
+            <!-- Status do pedido -->
+            <p class="text-sm text-zinc-400">
+              Status: <span class="font-semibold text-white capitalize">{{ pedido.get_status_display }}</span>
+            </p>
+
+            <!-- Lista de itens do pedido -->
+            <ul class="space-y-2 text-sm">
+              {% for item in pedido.itens.all %}
+                <li>{{ item.quantidade }}x {{ item.camiseta.nome }} ({{ item.modelo }} / {{ item.tamanho }}) — R$ {{ item.subtotal|floatformat:2 }}</li>
+              {% endfor %}
+            </ul>
+
+            <!-- Total do pedido -->
+            <p class="text-emerald-400 font-semibold text-right">Total: R$ {{ pedido.total|floatformat:2 }}</p>
+          </div>
+        {% endfor %}
+      </div>
+
+    <!-- Caso não existam pedidos para o e-mail informado -->
+    {% elif email %}
+      <p class="text-center text-zinc-400 text-sm mt-6">
+        Nenhum pedido encontrado para <strong>{{ email }}</strong>.
+      </p>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

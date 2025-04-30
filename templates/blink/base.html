@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Blink - Streetwear com identidade{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="bg-zinc-900 text-white font-sans">
+
+    <!-- HEADER FIXO -->
+    <header class="bg-zinc-950 border-b border-zinc-800 sticky top-0 z-50">
+      <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center relative">
+
+        <!-- LOGO -->
+        <a href="{% url 'home' %}" class="flex items-center gap-2 hover:text-emerald-400 transition">
+          <span class="text-2xl font-black tracking-tight">BLINK</span>
+        </a>
+
+        <!-- ÍCONES À DIREITA -->
+        <div class="flex items-center gap-4">
+
+          <!-- BOTÃO MENU MOBILE -->
+          <div class="sm:hidden">
+            <button id="menu-button" class="text-white focus:outline-none">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+            </button>
+          </div>
+
+        <!-- MENU DESKTOP -->
+        <nav id="menu" class="hidden sm:flex space-x-6 text-sm font-medium">
+          <a href="{% url 'lista_camisetas' %}" class="hover:text-emerald-400 transition">Camisetas</a>
+          <a href="{% url 'meus_pedidos' %}" class="hover:text-emerald-400 transition">Meus Pedidos</a>
+          <a href="https://www.instagram.com/blink.strt/" target="_blank" class="hover:text-emerald-400 transition">Instagram</a>
+        </nav>
+
+          <!-- CARRINHO -->
+          <div class="relative">
+            <a href="{% url 'ver_carrinho' %}" class="relative inline-flex items-center hover:text-emerald-400 transition">
+              🛒
+              {% if total_carrinho > 0 %}
+                <span class="absolute -top-2 -right-3 bg-emerald-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {{ total_carrinho }}
+                </span>
+              {% endif %}
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- MENU MOBILE DROPDOWN -->
+      <div id="mobile-menu" class="hidden sm:hidden bg-zinc-950 border-t border-zinc-800">
+        <nav class="px-6 py-4 space-y-4 text-sm font-medium">
+          <a href="{% url 'lista_camisetas' %}" class="block hover:text-emerald-400 transition">Camisetas</a>
+          <a href="{% url 'meus_pedidos' %}" class="block hover:text-emerald-400 transition">Meus Pedidos</a>
+          <a href="https://www.instagram.com/blink.strt/" target="_blank" class="block hover:text-emerald-400 transition">Instagram</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- SCRIPT PARA MENU MOBILE -->
+    <script>
+      const menuButton = document.getElementById('menu-button');
+      const mobileMenu = document.getElementById('mobile-menu');
+
+      menuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+    </script>
+
+    <!-- CONTEÚDO DAS PÁGINAS -->
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-zinc-950 text-zinc-400 py-10 px-6 border-t border-zinc-800 mt-12 text-sm">
+      <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 text-center md:text-left">
+
+        <!-- CONTATO -->
+        <div>
+          <h3 class="text-white font-semibold mb-4 tracking-wide">Contato</h3>
+          <p class="flex justify-center md:justify-start items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" width="18" height="18"><path d="M6.62 10.79a15.053 15.053 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.11-.21 11.72 11.72 0 0 0 3.64.58 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C7.61 21 3 16.39 3 11a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.72 11.72 0 0 0 .58 3.64 1 1 0 0 1-.21 1.11l-2.2 2.2z"/></svg>
+            +55 (19) 99974‑3366
+          </p>
+          <p class="flex justify-center md:justify-start items-center gap-2 mt-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" width="18" height="18"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            blinkcompany.co@gmail.com
+          </p>
+          <p class="flex justify-center md:justify-start items-center gap-2 mt-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" width="18" height="18"><path d="M12 2.2c3.2 0 3.6 0 4.8.1 1.2.1 1.9.2 2.4.4.6.2 1.1.5 1.6.9.5.5.8 1 .9 1.6.2.5.3 1.2.4 2.4.1 1.2.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 1.2-.2 1.9-.4 2.4-.2.6-.5 1.1-.9 1.6-.5.5-1 .8-1.6.9-.5.2-1.2.3-2.4.4-1.2.1-1.6.1-4.8.1s-3.6 0-4.8-.1c-1.2-.1-1.9-.2-2.4-.4a4.2 4.2 0 0 1-1.6-.9c-.5-.5-.8-1-.9-1.6-.2-.5-.3-1.2-.4-2.4C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8c.1-1.2.2-1.9.4-2.4.2-.6.5-1.1.9-1.6.5-.5 1-.8 1.6-.9.5-.2 1.2-.3 2.4-.4C8.4 2.2 8.8 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.7.1-1.1.1-1.7.2-2.1.3-.5.1-.8.3-1.1.6-.3.3-.5.6-.6 1.1-.1.4-.2 1-.3 2.1-.1 1.2-.1 1.6-.1 4.7s0 3.5.1 4.7c.1 1.1.2 1.7.3 2.1.1.5.3.8.6 1.1.3.3.6.5 1.1.6.4.1 1 .2 2.1.3 1.2.1 1.6.1 4.7.1s3.5 0 4.7-.1c1.1-.1 1.7-.2 2.1-.3.5-.1.8-.3 1.1-.6.3-.3.5-.6.6-1.1.1-.4.2-1 .3-2.1.1-1.2.1-1.6.1-4.7s0-3.5-.1-4.7c-.1-1.1-.2-1.7-.3-2.1-.1-.5-.3-.8-.6-1.1-.3-.3-.6-.5-1.1-.6-.4-.1-1-.2-2.1-.3-1.2-.1-1.6-.1-4.7-.1zm0 3.9a5.9 5.9 0 1 1 0 11.8 5.9 5.9 0 0 1 0-11.8zm0 9.7a3.8 3.8 0 1 0 0-7.6 3.8 3.8 0 0 0 0 7.6zm6-10.4a1.4 1.4 0 1 1-2.8 0 1.4 1.4 0 0 1 2.8 0z"/></svg>
+            <a href="https://www.instagram.com/blink.strt/" target="_blank" class="text-zinc-300 hover:text-emerald-400 font-medium">
+              @blink.strt
+            </a>
+          </p>
+        </div>
+
+        <!-- AJUDA -->
+        <div>
+          <h3 class="text-white font-semibold mb-4 tracking-wide">Ajuda</h3>
+          <ul class="space-y-2">
+            <li>
+              <a href="/meus-pedidos" class="hover:text-emerald-400 transition">📦 Meus Pedidos</a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- PAGAMENTO -->
+        <div>
+          <h3 class="text-white font-semibold mb-4 tracking-wide">Pagamento seguro</h3>
+          <p class="mb-2">Aceitamos via Stripe:</p>
+          <img src="https://stripe.com/img/v3/home/social.png" alt="Stripe" class="h-8 opacity-80 mx-auto md:mx-0" />
+        </div>
+
+      </div>
+
+      <div class="text-center text-zinc-500 text-xs mt-10">
+        © 2025 Blink Streetwear · Todos os direitos reservados
+      </div>
+    </footer>
+
+  </body>
+</html>
+
