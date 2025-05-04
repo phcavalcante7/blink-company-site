@@ -1,5 +1,6 @@
 from django.shortcuts import redirect, get_object_or_404, render
 from .models import Camiseta, Pedido, ItemPedido
+from django.contrib import messages
 import stripe
 import json
 from django.conf import settings
@@ -18,7 +19,6 @@ def adicionar_ao_carrinho(request):
         camiseta_id = request.POST.get('camiseta_id')
         modelo = request.POST.get('modelo')
         tamanho = request.POST.get('tamanho') or 'não informado'
-        quantidade = int(request.POST.get('quantidade', 1))
 
         camiseta = get_object_or_404(Camiseta, id=camiseta_id)
 
@@ -27,24 +27,21 @@ def adicionar_ao_carrinho(request):
             'nome': camiseta.nome,
             'modelo': modelo,
             'tamanho': tamanho,
-            'quantidade': quantidade
+            'quantidade': 1
         }
 
-        # Obtém o carrinho da sessão ou cria um novo
         carrinho = request.session.get('carrinho', [])
 
-        # Verifica se o mesmo item já existe (mesmo produto, modelo, tamanho)
-        encontrado = False
-        for i in carrinho:
-            if i['camiseta_id'] == camiseta.id and i['modelo'] == modelo and i['tamanho'] == tamanho:
-                i['quantidade'] += quantidade
-                encontrado = True
-                break
+        # Adiciona o item apenas se ele ainda não estiver no carrinho
+        existe = any(
+            i['camiseta_id'] == camiseta.id and i['modelo'] == modelo and i['tamanho'] == tamanho
+            for i in carrinho
+        )
 
-        if not encontrado:
+        if not existe:
             carrinho.append(item)
 
-        # Salva o carrinho na sessão
+
         request.session['carrinho'] = carrinho
         request.session.modified = True
 
@@ -71,17 +68,22 @@ def remover_do_carrinho(request, camiseta_id, modelo, tamanho):
 
 def incrementar_item(request, camiseta_id, modelo, tamanho):
     carrinho = request.session.get('carrinho', [])
+    camiseta = get_object_or_404(Camiseta, id=camiseta_id)
+    estoque_disponivel = camiseta.estoque.get(modelo, {}).get(tamanho, 0)
 
     for item in carrinho:
-        if (item['camiseta_id'] == camiseta_id and
-            item['modelo'] == modelo and
-            item['tamanho'] == tamanho):
-            item['quantidade'] += 1
+        if item['camiseta_id'] == camiseta.id and item['modelo'] == modelo and item['tamanho'] == tamanho:
+            atual = item.get('quantidade', 1)
+            if atual >= estoque_disponivel:
+                messages.error(request, f"Estoque insuficiente: só temos {estoque_disponivel} unidade(s) de {camiseta.nome} ({modelo} - {tamanho.upper()}).")
+                break
+            item['quantidade'] = atual + 1
             break
 
     request.session['carrinho'] = carrinho
     request.session.modified = True
     return redirect('ver_carrinho')
+
 
 def decrementar_item(request, camiseta_id, modelo, tamanho):
     carrinho = request.session.get('carrinho', [])
@@ -90,7 +92,8 @@ def decrementar_item(request, camiseta_id, modelo, tamanho):
         if (item['camiseta_id'] == camiseta_id and
             item['modelo'] == modelo and
             item['tamanho'] == tamanho):
-            item['quantidade'] -= 1
+            item['quantidade'] = item.get('quantidade', 1) - 1
+
             if item['quantidade'] <= 0:
                 carrinho.remove(item)
             break
@@ -107,7 +110,7 @@ def ver_carrinho(request):
     for item in carrinho:
         try:
             camiseta = Camiseta.objects.get(id=item['camiseta_id'])
-            quantidade = item['quantidade']
+            quantidade = item.get('quantidade', 1)
             preco_unitario = camiseta.preco_unitario(quantidade)
             subtotal = preco_unitario * quantidade
 
@@ -124,7 +127,7 @@ def ver_carrinho(request):
         except Camiseta.DoesNotExist:
             continue
 
-    total_carrinho = sum(item['quantidade'] for item in carrinho)
+    total_carrinho = sum(item.get('quantidade', 1) for item in carrinho)
 
     return render(request, 'blink/carrinho.html', {
         'itens': itens,
@@ -146,7 +149,7 @@ def checkout(request):
             camiseta_id = item['camiseta_id']
             modelo = item['modelo']
             tamanho = item['tamanho']
-            quantidade = item['quantidade']
+            quantidade = item.get('quantidade', 1)
 
             # Busca a camiseta no banco
             camiseta = Camiseta.objects.get(id=camiseta_id)
@@ -227,7 +230,7 @@ def produto(request, slug):
     camiseta = get_object_or_404(Camiseta, slug=slug)
     tamanhos = ["PP", "P", "M", "G", "GG", "XG"]
     carrinho = request.session.get('carrinho', [])
-    total_carrinho = sum(item['quantidade'] for item in carrinho)
+    total_carrinho = sum(item.get('quantidade', 1) for item in carrinho)
 
     context = {
         'camiseta': camiseta,
@@ -239,7 +242,7 @@ def produto(request, slug):
 def lista_camisetas(request):
     camisetas = Camiseta.objects.all()
     carrinho = request.session.get('carrinho', [])
-    total_carrinho = sum(item['quantidade'] for item in carrinho)
+    total_carrinho = sum(item.get('quantidade', 1) for item in carrinho)
 
     return render(request, 'camisetas/camisetas.html', {
         'camisetas': camisetas,
@@ -255,7 +258,7 @@ def meus_pedidos(request):
         pedidos = Pedido.objects.filter(email=email).order_by("-data")
 
     carrinho = request.session.get('carrinho', [])
-    total_carrinho = sum(item['quantidade'] for item in carrinho)
+    total_carrinho = sum(item.get('quantidade', 1) for item in carrinho)
 
     return render(request, 'blink/meus_pedidos.html', {
         'pedidos': pedidos,
