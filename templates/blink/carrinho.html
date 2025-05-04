@@ -7,7 +7,16 @@
 <div class="max-w-4xl mx-auto space-y-10">
 
     <h2 class="text-3xl font-extrabold text-white text-center">Seu carrinho 🛒</h2>
-
+    <!-- Django Error message -->
+    {% if messages %}
+        <div class="max-w-3xl mx-auto px-4 mt-4">
+            {% for message in messages %}
+                <div class="bg-red-600 text-white text-sm font-medium px-4 py-3 rounded shadow mb-3">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
     {% if itens %}
         <div class="space-y-6">
             {% for item in itens %}
@@ -17,6 +26,7 @@
                             <img src="{{ item.camiseta.imagens.first.imagem.url }}" alt="{{ item.camiseta.nome }}"
                                 class="w-24 h-24 object-cover rounded-xl border border-zinc-600">
                         {% endif %}
+                        <!-- Card -->
                         <div class="flex flex-col gap-1">
                             <p class="text-white font-semibold text-lg">{{ item.camiseta.nome }}</p>
                             <p class="text-sm text-zinc-400">Modelo: {{ item.modelo }} | Tamanho: {{ item.tamanho }}</p>

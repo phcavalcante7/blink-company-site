@@ -22,11 +22,8 @@
         <img id="mainImage"
              src="{{ camiseta.imagens.first.imagem.url }}"
              alt="{{ camiseta.nome }}"
-             class="relative z-10 w-full h-full object-contain transition-transform duration-300"
-             ondblclick="toggleZoom(event, this)">
+             class="relative z-10 w-full h-full object-contain">
       </div>
-
-      <p class="text-xs text-zinc-400 italic mt-2 text-center">Dê dois cliques na imagem para ativar o zoom.</p> 
     </div>
 
     <!-- Info -->
@@ -36,7 +33,7 @@
 
       <p class="text-2xl font-semibold text-emerald-400" id="preco">R$ --</p>
 
-      <form action="{% url 'adicionar_ao_carrinho' %}" method="POST" class="space-y-6">
+      <form action="{% url 'adicionar_ao_carrinho' %}" method="POST">
         {% csrf_token %}
         <input type="hidden" name="camiseta_id" value="{{ camiseta.id }}">
         <input type="hidden" name="tamanho" id="form-tamanho">
@@ -47,7 +44,7 @@
         <div>
           <label class="block text-sm mb-2">Modelo:</label>
           <select name="modelo" id="modelo"
-                  class="bg-zinc-900 border border-zinc-700 text-white px-4 py-3 rounded w-full"
+                  class="bg-zinc-900 border border-zinc-700 text-white px-4 py-3 rounded w-full appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   onchange="atualizarTamanhos(); atualizarPreco(); atualizarMedidas(this.value); atualizarModeloLabel(this.value)">
             <option value="normal">Normal</option>
             <option value="oversized">Oversized</option>
@@ -60,13 +57,7 @@
           <div id="tamanhos-container" class="flex flex-wrap gap-2"></div>
         </div>
 
-        <!-- Quantidade -->
-        <div>
-          <label class="block text-sm mb-2">Quantidade:</label>
-          <input type="number" name="quantidade" id="quantidade" value="1" min="1"
-                 class="w-24 bg-zinc-900 border border-zinc-700 text-white px-4 py-3 rounded"
-                 oninput="atualizarPreco()">
-        </div>
+        
 
         <!-- Descrição -->
         <div class="text-sm text-zinc-300 leading-relaxed border-t border-zinc-700 pt-6">
@@ -78,13 +69,13 @@
         <div class="mt-8">
           <h3 class="text-lg font-bold mb-2">
             Medidas aproximadas <span id="modelo-label">Normal</span>
-          </h3>          
+          </h3>
           <div id="tabela-medidas" class="text-sm text-zinc-300 leading-relaxed space-y-1"></div>
         </div>
 
         <!-- Botão -->
         <button type="submit"
-                class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 px-6 rounded-xl font-bold mt-4 shadow-md transition-all">
+                class="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white py-3 px-6 rounded-xl font-bold mt-4 shadow-lg transition-all">
           Adicionar ao carrinho
         </button>
       </form>
@@ -96,50 +87,35 @@
 {{ camiseta.estoque|json_script:"estoque-data" }}
 <script>
 const estoque = JSON.parse(document.getElementById("estoque-data").textContent);
-let zoomed = false;
-
-function toggleZoom(event, img) {
-  zoomed = !zoomed;
-
-  if (zoomed) {
-    img.style.transform = "scale(2)";
-    img.style.cursor = "zoom-out";
-    img.addEventListener("mousemove", handleZoomMove);
-  } else {
-    img.style.transform = "scale(1)";
-    img.style.cursor = "zoom-in";
-    img.removeEventListener("mousemove", handleZoomMove);
-  }
-}
-
-function handleZoomMove(event) {
-  const img = event.currentTarget;
-  const rect = img.getBoundingClientRect();
-  const offsetX = event.clientX - rect.left;
-  const offsetY = event.clientY - rect.top;
-
-  const percentX = offsetX / rect.width * 100;
-  const percentY = offsetY / rect.height * 100;
-
-  img.style.transformOrigin = `${percentX}% ${percentY}%`;
-}
 
 function atualizarTamanhos() {
   const modelo = document.getElementById("modelo").value;
   const container = document.getElementById("tamanhos-container");
   container.innerHTML = "";
-  Object.entries(estoque[modelo]).forEach(([tamanho, qtd]) => {
+  const tamanhos = ["P", "M", "G", "GG", "PP"];
+  tamanhos.forEach(tamanho => {
+    const qtd = estoque[modelo]?.[tamanho];
+
+    if (qtd === undefined) return; // ignora tamanhos não cadastrados
+    if (tamanho === "PP" && qtd <= 0) return; // PP só aparece se tiver
+
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.textContent = tamanho;
-    btn.className = "px-3 py-1 rounded border border-zinc-600 text-sm text-white " +
-      (qtd === 0 ? "opacity-30 cursor-not-allowed" : "hover:border-emerald-400");
-    btn.disabled = qtd === 0;
-    btn.onclick = () => {
-      document.querySelectorAll("#tamanhos-container button").forEach(b => b.classList.remove("border-emerald-400"));
-      btn.classList.add("border-emerald-400");
-      document.getElementById("form-tamanho").value = tamanho;
-    };
+
+    if (qtd > 0) {
+      btn.innerHTML = `${tamanho} <span class='text-xs text-zinc-400'>${qtd === 1 ? 'Última peça!' : `(${qtd})`}</span>`;
+      btn.className = `px-4 py-2 text-sm rounded-lg border border-emerald-500 text-white bg-zinc-900 transition-all hover:border-emerald-400 hover:text-emerald-400`;
+      btn.onclick = () => {
+        document.querySelectorAll("#tamanhos-container button").forEach(b => b.classList.remove("bg-emerald-500", "border-emerald-500", "text-white", "font-semibold"));
+        btn.classList.add("bg-emerald-500", "border-emerald-500", "text-white", "font-semibold");
+        document.getElementById("form-tamanho").value = tamanho;
+      };
+    } else {
+      btn.innerHTML = `<span class='line-through opacity-50'>${tamanho}</span>`;
+      btn.className = `px-4 py-2 text-sm rounded-lg border border-zinc-600 text-zinc-500 bg-zinc-800 cursor-not-allowed`;
+      btn.disabled = true;
+    }
+
     container.appendChild(btn);
   });
   document.getElementById("form-modelo").value = modelo;
@@ -147,16 +123,8 @@ function atualizarTamanhos() {
 
 function atualizarPreco() {
   const modelo = document.getElementById("modelo").value;
-  const quantidade = parseInt(document.getElementById("quantidade").value || 1);
-  const precoUnit = modelo === "normal" ? (quantidade >= 3 ? 80 : 85) : (quantidade >= 3 ? 90 : 95);
-  const precoTotal = precoUnit * quantidade;
-  let texto = `R$ ${precoTotal.toFixed(2).replace('.', ',')}`;
-  if (quantidade > 1) {
-    texto += ` (R$ ${precoUnit.toFixed(2).replace('.', ',')} cada)`;
-  }
-  document.getElementById("preco").innerText = texto;
-  document.getElementById("form-quantidade").value = quantidade;
-  document.getElementById("form-modelo").value = modelo;
+  const precoUnit = modelo === "normal" ? 85 : 95;
+  document.getElementById("preco").innerText = `R$ ${precoUnit},00`;
 }
 
 function atualizarModeloLabel(modelo) {
@@ -165,18 +133,8 @@ function atualizarModeloLabel(modelo) {
 
 function atualizarMedidas(modelo) {
   const medidas = {
-    normal: {
-      P: { larg: 50, comp: 71 },
-      M: { larg: 51, comp: 72 },
-      G: { larg: 53, comp: 75 },
-      GG: { larg: 56, comp: 77 },
-    },
-    oversized: {
-      P: { larg: 53, comp: 74 },
-      M: { larg: 55, comp: 77 },
-      G: { larg: 57, comp: 80 },
-      GG: { larg: 61, comp: 83 }
-    }
+    normal: { P: { larg: 50, comp: 71 }, M: { larg: 51, comp: 72 }, G: { larg: 53, comp: 75 }, GG: { larg: 56, comp: 77 } },
+    oversized: { P: { larg: 53, comp: 74 }, M: { larg: 55, comp: 77 }, G: { larg: 57, comp: 80 }, GG: { larg: 61, comp: 83 } }
   };
   const tabela = medidas[modelo];
   let html = "";
@@ -193,6 +151,5 @@ document.addEventListener("DOMContentLoaded", () => {
   atualizarMedidas(modelo);
   atualizarModeloLabel(modelo);
 });
-{{ block.super }}
 </script>
 {% endblock %}
