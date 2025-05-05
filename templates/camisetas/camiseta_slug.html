@@ -4,6 +4,18 @@
 {% block title %}{{ camiseta.nome }} - Blink{% endblock %}
 
 {% block content %}
+
+<!-- MENSAGENS DO DJANGO -->
+{% if messages %}
+  <div class="max-w-3xl mx-auto px-4 mb-6">
+    {% for message in messages %}
+      <div class="bg-red-600 text-white text-sm font-medium px-4 py-3 rounded shadow-md mb-3">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
 <section class="bg-[#0f0d15] text-white px-4 sm:px-6 py-20 min-h-screen">
   <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-10 items-start">
 
@@ -38,14 +50,12 @@
         <input type="hidden" name="camiseta_id" value="{{ camiseta.id }}">
         <input type="hidden" name="tamanho" id="form-tamanho">
         <input type="hidden" name="modelo" id="form-modelo">
-        <input type="hidden" name="quantidade" id="form-quantidade">
 
         <!-- Modelo -->
         <div>
           <label class="block text-sm mb-2">Modelo:</label>
           <select name="modelo" id="modelo"
-                  class="bg-zinc-900 border border-zinc-700 text-white px-4 py-3 rounded w-full appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  onchange="atualizarTamanhos(); atualizarPreco(); atualizarMedidas(this.value); atualizarModeloLabel(this.value)">
+                  class="bg-zinc-900 border border-zinc-700 text-white px-4 py-3 rounded w-full appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500">
             <option value="normal">Normal</option>
             <option value="oversized">Oversized</option>
           </select>
@@ -56,8 +66,6 @@
           <label class="block text-sm mb-2">Tamanho:</label>
           <div id="tamanhos-container" class="flex flex-wrap gap-2"></div>
         </div>
-
-        
 
         <!-- Descrição -->
         <div class="text-sm text-zinc-300 leading-relaxed border-t border-zinc-700 pt-6">
@@ -83,73 +91,78 @@
   </div>
 </section>
 
-<!-- Scripts JS -->
-{{ camiseta.estoque|json_script:"estoque-data" }}
 <script>
-const estoque = JSON.parse(document.getElementById("estoque-data").textContent);
-
-function atualizarTamanhos() {
-  const modelo = document.getElementById("modelo").value;
-  const container = document.getElementById("tamanhos-container");
-  container.innerHTML = "";
-  const tamanhos = ["P", "M", "G", "GG", "PP"];
-  tamanhos.forEach(tamanho => {
-    const qtd = estoque[modelo]?.[tamanho];
-
-    if (qtd === undefined) return; // ignora tamanhos não cadastrados
-    if (tamanho === "PP" && qtd <= 0) return; // PP só aparece se tiver
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-
-    if (qtd > 0) {
-      btn.innerHTML = `${tamanho} <span class='text-xs text-zinc-400'>${qtd === 1 ? 'Última peça!' : `(${qtd})`}</span>`;
-      btn.className = `px-4 py-2 text-sm rounded-lg border border-emerald-500 text-white bg-zinc-900 transition-all hover:border-emerald-400 hover:text-emerald-400`;
-      btn.onclick = () => {
-        document.querySelectorAll("#tamanhos-container button").forEach(b => b.classList.remove("bg-emerald-500", "border-emerald-500", "text-white", "font-semibold"));
-        btn.classList.add("bg-emerald-500", "border-emerald-500", "text-white", "font-semibold");
-        document.getElementById("form-tamanho").value = tamanho;
-      };
-    } else {
-      btn.innerHTML = `<span class='line-through opacity-50'>${tamanho}</span>`;
-      btn.className = `px-4 py-2 text-sm rounded-lg border border-zinc-600 text-zinc-500 bg-zinc-800 cursor-not-allowed`;
-      btn.disabled = true;
+  document.addEventListener("DOMContentLoaded", () => {
+    const modeloSelect = document.getElementById("modelo");
+    const camisetaId = "{{ camiseta.id }}";
+    const precoSpan = document.getElementById("preco");
+    const tamanhosContainer = document.getElementById("tamanhos-container");
+    const medidasContainer = document.getElementById("tabela-medidas");
+    const modeloLabel = document.getElementById("modelo-label");
+    const formModelo = document.getElementById("form-modelo");
+  
+    async function carregarDados(modelo) {
+      try {
+        const response = await fetch(`/api/detalhes-modelo/?camiseta_id=${camisetaId}&modelo=${modelo}`);
+        const data = await response.json();
+  
+        // Preço
+        precoSpan.textContent = `R$ ${data.preco},00`;
+  
+        // Modelo no form
+        formModelo.value = modelo;
+  
+        // Modelo no label de medidas
+        modeloLabel.textContent = modelo.charAt(0).toUpperCase() + modelo.slice(1);
+  
+        // Medidas
+        let htmlMedidas = "";
+        for (const tam in data.medidas) {
+          const m = data.medidas[tam];
+          htmlMedidas += `<p><b>${tam}</b><br>${m.larg}cm largura<br>${m.comp}cm comprimento</p>`;
+        }
+        medidasContainer.innerHTML = htmlMedidas;
+  
+        // Tamanhos
+        tamanhosContainer.innerHTML = "";
+        const ordem = ["P", "M", "G", "GG", "PP"];
+        ordem.forEach(tam => {
+          const qtd = data.estoque[tam] || 0;
+  
+          if (["P", "M", "G", "GG"].includes(tam) || qtd > 0) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "px-4 py-2 text-sm rounded-lg border transition-all";
+  
+            if (qtd > 0) {
+              btn.innerHTML = `${tam} <span class="text-xs text-zinc-400">${qtd === 1 ? 'Última peça!' : `(${qtd})`}</span>`;
+              btn.classList.add("border-emerald-500", "text-white", "bg-zinc-900", "hover:border-emerald-400", "hover:text-emerald-400");
+              btn.onclick = () => {
+                document.querySelectorAll("#tamanhos-container button").forEach(b => b.classList.remove("bg-emerald-500", "font-semibold"));
+                btn.classList.add("bg-emerald-500", "font-semibold");
+                document.getElementById("form-tamanho").value = tam;
+              };
+            } else {
+              btn.innerHTML = `<span class="line-through opacity-50">${tam}</span>`;
+              btn.classList.add("border-zinc-600", "text-zinc-500", "bg-zinc-800", "cursor-not-allowed");
+              btn.disabled = true;
+            }
+  
+            tamanhosContainer.appendChild(btn);
+          }
+        });
+  
+      } catch (error) {
+        console.error("Erro ao carregar detalhes do modelo:", error);
+      }
     }
-
-    container.appendChild(btn);
+  
+    modeloSelect.addEventListener("change", () => {
+      carregarDados(modeloSelect.value);
+    });
+  
+    carregarDados(modeloSelect.value); // Carrega ao abrir a página
   });
-  document.getElementById("form-modelo").value = modelo;
-}
+  </script>  
 
-function atualizarPreco() {
-  const modelo = document.getElementById("modelo").value;
-  const precoUnit = modelo === "normal" ? 85 : 95;
-  document.getElementById("preco").innerText = `R$ ${precoUnit},00`;
-}
-
-function atualizarModeloLabel(modelo) {
-  document.getElementById("modelo-label").textContent = modelo.charAt(0).toUpperCase() + modelo.slice(1);
-}
-
-function atualizarMedidas(modelo) {
-  const medidas = {
-    normal: { P: { larg: 50, comp: 71 }, M: { larg: 51, comp: 72 }, G: { larg: 53, comp: 75 }, GG: { larg: 56, comp: 77 } },
-    oversized: { P: { larg: 53, comp: 74 }, M: { larg: 55, comp: 77 }, G: { larg: 57, comp: 80 }, GG: { larg: 61, comp: 83 } }
-  };
-  const tabela = medidas[modelo];
-  let html = "";
-  for (const [tamanho, medida] of Object.entries(tabela)) {
-    html += `<p><b>${tamanho}</b><br>${medida.larg}cm largura<br>${medida.comp}cm comprimento</p>`;
-  }
-  document.getElementById("tabela-medidas").innerHTML = html;
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const modelo = document.getElementById("modelo").value;
-  atualizarTamanhos();
-  atualizarPreco();
-  atualizarMedidas(modelo);
-  atualizarModeloLabel(modelo);
-});
-</script>
 {% endblock %}
