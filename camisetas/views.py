@@ -8,7 +8,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from camisetas.utils import enviar_email
 
-# Settings 
+# ---------Settings-----------
 # ----------------------------
 stripe.api_key = settings.STRIPE_SECRET_KEY
 endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
@@ -18,12 +18,16 @@ def adicionar_ao_carrinho(request):
     if request.method == 'POST':
         camiseta_id = request.POST.get('camiseta_id')
         modelo = request.POST.get('modelo')
-        tamanho = request.POST.get('tamanho') or 'não informado'
+        tamanho = request.POST.get('tamanho')
 
-        camiseta = get_object_or_404(Camiseta, id=camiseta_id)
+        if not tamanho:
+            messages.error(request, "Selecione um tamanho.")
+            return redirect(request.META.get('HTTP_REFERER', 'lista_camisetas'))
+
+        camiseta = get_object_or_404(Camiseta, id=camiseta_id)  
 
         item = {
-            'camiseta_id': camiseta.id,
+            'camiseta_id': camiseta.id, 
             'nome': camiseta.nome,
             'modelo': modelo,
             'tamanho': tamanho,
@@ -41,13 +45,13 @@ def adicionar_ao_carrinho(request):
         if not existe:
             carrinho.append(item)
 
-
         request.session['carrinho'] = carrinho
         request.session.modified = True
 
         return redirect('ver_carrinho')
 
     return redirect('lista_camisetas')
+
 
 def remover_do_carrinho(request, camiseta_id, modelo, tamanho):
     carrinho = request.session.get('carrinho', [])
