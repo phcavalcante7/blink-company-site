@@ -13,7 +13,7 @@ from .views import (
     webhook_stripe,
     meus_pedidos,
 )
-from .utils import enviar_email
+from .utils import enviar_email, detalhes_modelo
 
 
 urlpatterns = [
@@ -30,4 +30,5 @@ urlpatterns = [
     path('webhook/stripe/', webhook_stripe, name='webhook_stripe'),
     path("enviar-email/", enviar_email, name='enviar_email'),
     path("meus-pedidos/", meus_pedidos, name="meus_pedidos"),
+    path("detalhes-modelo/<int:camiseta_id>/<str:modelo>/", detalhes_modelo, name="detalhes_modelo"),
 ]

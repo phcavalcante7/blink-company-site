@@ -1,24 +1,24 @@
-{% extends 'blink/base.html' %}
+{% extends "blink/base.html" %}
 {% load static %}
 
-{% block title %}{{ camiseta.nome }} - Blink{% endblock %}
+{% block title %}{{ camiseta.nome }} – Blink{% endblock %}
 
 {% block content %}
 <section class="bg-[#0f0d15] text-white px-4 sm:px-6 py-20 min-h-screen">
   <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-10 items-start">
 
-    <!-- Galeria -->
+    <!-- Galeria ---------------------------------------------------------------->
     <div class="w-full lg:w-1/2 flex flex-col items-center gap-6">
       <div class="flex gap-2 flex-wrap justify-center">
-        {% for imagem in camiseta.imagens.all %}
-          <img src="{{ imagem.imagem.url }}"
-              class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded border border-zinc-700 cursor-pointer hover:border-emerald-500 transition"
-              onclick="document.getElementById('mainImage').src='{{ imagem.imagem.url }}'">
+        {% for img in camiseta.imagens.all %}
+          <img  src="{{ img.imagem.url }}"
+                class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded border border-zinc-700 cursor-pointer hover:border-emerald-500 transition"
+                onclick="document.getElementById('mainImage').src='{{ img.imagem.url }}'">
         {% endfor %}
       </div>
 
-      <div class="relative w-full aspect-[3/4] overflow-hidden rounded-xl group max-w-md sm:max-w-full">
-        <div class="absolute inset-0 bg-gradient-to-b from-[#5f3069] to-black z-0 rounded-xl"></div>
+      <div class="relative w-full aspect-[3/4] overflow-hidden rounded-xl max-w-md sm:max-w-full">
+        <div class="absolute inset-0 bg-gradient-to-b from-[#5f3069] to-black rounded-xl"></div>
         <img id="mainImage"
              src="{{ camiseta.imagens.first.imagem.url }}"
              alt="{{ camiseta.nome }}"
@@ -26,56 +26,51 @@
       </div>
     </div>
 
-    <!-- Info -->
+    <!-- Informações ------------------------------------------------------------>
     <div class="w-full lg:w-1/2 space-y-6">
       <h1 class="text-3xl font-bold">{{ camiseta.nome }}</h1>
       <p class="text-sm text-zinc-400">Categoria: {{ camiseta.categoria.nome }}</p>
 
-      <p class="text-2xl font-semibold text-emerald-400" id="preco">R$ --</p>
+      <p id="preco" class="text-2xl font-semibold text-emerald-400">R$ --</p>
 
-      <form action="{% url 'adicionar_ao_carrinho' %}" method="POST">
+      <form action="{% url 'adicionar_ao_carrinho' %}" method="POST" class="space-y-6">
         {% csrf_token %}
-        <input type="hidden" name="camiseta_id" value="{{ camiseta.id }}">
-        <input type="hidden" name="tamanho" id="form-tamanho">
-        <input type="hidden" name="modelo" id="form-modelo">
-        <input type="hidden" name="quantidade" id="form-quantidade">
+        <input type="hidden" name="camiseta_id"   value="{{ camiseta.id }}">
+        <input type="hidden" name="modelo"        id="form-modelo">
+        <input type="hidden" name="tamanho"       id="form-tamanho">
+        <input type="hidden" name="quantidade"    value="1"><!-- quantidade fixa -->
 
-        <!-- Modelo -->
+        <!-- MODELO ------------------------------------------------------------->
         <div>
           <label class="block text-sm mb-2">Modelo:</label>
-          <select name="modelo" id="modelo"
-                  class="bg-zinc-900 border border-zinc-700 text-white px-4 py-3 rounded w-full appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  onchange="atualizarTamanhos(); atualizarPreco(); atualizarMedidas(this.value); atualizarModeloLabel(this.value)">
+          <select id="select-modelo" name="modelo"
+                  class="bg-zinc-900 border border-zinc-700 text-white px-4 py-3 rounded w-full focus:ring-emerald-500">
             <option value="normal">Normal</option>
             <option value="oversized">Oversized</option>
           </select>
         </div>
 
-        <!-- Tamanhos -->
+        <!-- TAMANHOS ----------------------------------------------------------->
         <div>
           <label class="block text-sm mb-2">Tamanho:</label>
           <div id="tamanhos-container" class="flex flex-wrap gap-2"></div>
         </div>
 
-        
-
-        <!-- Descrição -->
+        <!-- DESCRIÇÃO --------------------------------------------------------->
         <div class="text-sm text-zinc-300 leading-relaxed border-t border-zinc-700 pt-6">
           <h3 class="text-lg font-bold mb-2">Descrição</h3>
           {{ camiseta.descricao|safe }}
         </div>
 
-        <!-- Medidas Aproximadas -->
+        <!-- MEDIDAS ----------------------------------------------------------->
         <div class="mt-8">
-          <h3 class="text-lg font-bold mb-2">
-            Medidas aproximadas <span id="modelo-label">Normal</span>
-          </h3>
+          <h3 class="text-lg font-bold mb-2">Medidas aproximadas <span id="modelo-label">Normal</span></h3>
           <div id="tabela-medidas" class="text-sm text-zinc-300 leading-relaxed space-y-1"></div>
         </div>
 
-        <!-- Botão -->
+        <!-- BOTÃO ------------------------------------------------------------->
         <button type="submit"
-                class="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white py-3 px-6 rounded-xl font-bold mt-4 shadow-lg transition-all">
+                class="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white py-3 px-6 rounded-xl font-bold shadow-lg">
           Adicionar ao carrinho
         </button>
       </form>
@@ -83,73 +78,84 @@
   </div>
 </section>
 
-<!-- Scripts JS -->
-{{ camiseta.estoque|json_script:"estoque-data" }}
+<!-- SCRIPT ------------------------------------------------------------------->
 <script>
-const estoque = JSON.parse(document.getElementById("estoque-data").textContent);
+(function () {
+  /* util pequeno para fetch seguro -----------------------------------------*/
+  function getJson(url) { return fetch(url).then(r => {
+      if (!r.ok) throw new Error('Erro ao consultar detalhes do modelo');
+      return r.json();
+  });}
 
-function atualizarTamanhos() {
-  const modelo = document.getElementById("modelo").value;
-  const container = document.getElementById("tamanhos-container");
-  container.innerHTML = "";
-  const tamanhos = ["P", "M", "G", "GG", "PP"];
-  tamanhos.forEach(tamanho => {
-    const qtd = estoque[modelo]?.[tamanho];
+  /* constrói URL base do endpoint -----------------------------------------*/
+  const baseUrl = `${window.location.origin}/detalhes-modelo/{{ camiseta.id }}/`;
 
-    if (qtd === undefined) return; // ignora tamanhos não cadastrados
-    if (tamanho === "PP" && qtd <= 0) return; // PP só aparece se tiver
+  const selectModelo      = document.getElementById('select-modelo');
+  const labelModelo       = document.getElementById('modelo-label');
+  const precoSpan         = document.getElementById('preco');
+  const tamanhosContainer = document.getElementById('tamanhos-container');
+  const inpModelo         = document.getElementById('form-modelo');
+  const inpTamanho        = document.getElementById('form-tamanho');
 
-    const btn = document.createElement("button");
-    btn.type = "button";
+  /* renderização -----------------------------------------------------------*/
+  function render(data, modelo) {
+      /* preço */
+      precoSpan.innerText = `R$ ${data.preco},00`;
 
-    if (qtd > 0) {
-      btn.innerHTML = `${tamanho} <span class='text-xs text-zinc-400'>${qtd === 1 ? 'Última peça!' : `(${qtd})`}</span>`;
-      btn.className = `px-4 py-2 text-sm rounded-lg border border-emerald-500 text-white bg-zinc-900 transition-all hover:border-emerald-400 hover:text-emerald-400`;
-      btn.onclick = () => {
-        document.querySelectorAll("#tamanhos-container button").forEach(b => b.classList.remove("bg-emerald-500", "border-emerald-500", "text-white", "font-semibold"));
-        btn.classList.add("bg-emerald-500", "border-emerald-500", "text-white", "font-semibold");
-        document.getElementById("form-tamanho").value = tamanho;
-      };
-    } else {
-      btn.innerHTML = `<span class='line-through opacity-50'>${tamanho}</span>`;
-      btn.className = `px-4 py-2 text-sm rounded-lg border border-zinc-600 text-zinc-500 bg-zinc-800 cursor-not-allowed`;
-      btn.disabled = true;
-    }
+      /* medidas */
+      const tbl = Object.entries(data.medidas || {})
+          .map(([t, m]) => `<p><b>${t}</b><br>${m.larg} cm largura<br>${m.comp} cm comprimento</p>`)
+          .join('');
+      document.getElementById('tabela-medidas').innerHTML = tbl;
 
-    container.appendChild(btn);
-  });
-  document.getElementById("form-modelo").value = modelo;
-}
+      /* tamanhos */
+      tamanhosContainer.innerHTML = '';
+      const ordem = ['P','M','G','GG','PP'];
+      ordem.forEach(tam => {
+          const qtd = data.estoque[tam];
+          if (qtd === undefined) return;
+          if (tam === 'PP' && qtd <= 0) return;
 
-function atualizarPreco() {
-  const modelo = document.getElementById("modelo").value;
-  const precoUnit = modelo === "normal" ? 85 : 95;
-  document.getElementById("preco").innerText = `R$ ${precoUnit},00`;
-}
+          const btn = document.createElement('button');
+          btn.type  = 'button';
 
-function atualizarModeloLabel(modelo) {
-  document.getElementById("modelo-label").textContent = modelo.charAt(0).toUpperCase() + modelo.slice(1);
-}
+          if (qtd > 0) {
+              btn.innerHTML = `${tam} <span class="text-xs text-zinc-400">${qtd === 1 ? 'Última peça!' : '('+qtd+')'}</span>`;
+              btn.className = 'px-4 py-2 text-sm rounded-lg border border-emerald-500 text-white bg-zinc-900 hover:border-emerald-400';
+              btn.onclick   = () => {
+                  document.querySelectorAll('#tamanhos-container button').forEach(b=>b.classList.remove('bg-emerald-500','text-white','font-semibold'));
+                  btn.classList.add('bg-emerald-500','text-white','font-semibold');
+                  inpTamanho.value = tam;
+              };
+          } else {
+              btn.innerHTML = `<span class="line-through opacity-50">${tam}</span>`;
+              btn.className = 'px-4 py-2 text-sm rounded-lg border border-zinc-600 text-zinc-500 bg-zinc-800 cursor-not-allowed';
+              btn.disabled  = true;
+          }
+          tamanhosContainer.appendChild(btn);
+      });
 
-function atualizarMedidas(modelo) {
-  const medidas = {
-    normal: { P: { larg: 50, comp: 71 }, M: { larg: 51, comp: 72 }, G: { larg: 53, comp: 75 }, GG: { larg: 56, comp: 77 } },
-    oversized: { P: { larg: 53, comp: 74 }, M: { larg: 55, comp: 77 }, G: { larg: 57, comp: 80 }, GG: { larg: 61, comp: 83 } }
-  };
-  const tabela = medidas[modelo];
-  let html = "";
-  for (const [tamanho, medida] of Object.entries(tabela)) {
-    html += `<p><b>${tamanho}</b><br>${medida.larg}cm largura<br>${medida.comp}cm comprimento</p>`;
+      /* hidden inputs / label */
+      inpModelo.value = modelo;
+      labelModelo.textContent = modelo.charAt(0).toUpperCase()+modelo.slice(1);
   }
-  document.getElementById("tabela-medidas").innerHTML = html;
-}
 
-document.addEventListener("DOMContentLoaded", () => {
-  const modelo = document.getElementById("modelo").value;
-  atualizarTamanhos();
-  atualizarPreco();
-  atualizarMedidas(modelo);
-  atualizarModeloLabel(modelo);
-});
+  /* controlador ------------------------------------------------------------*/
+  function carregarDetalhes() {
+      const modelo = selectModelo.value;
+      getJson(baseUrl + modelo + '/')
+          .then(data => render(data, modelo))
+          .catch(err => {
+              console.error(err);
+              precoSpan.innerText = 'Erro!';
+              tamanhosContainer.innerHTML = '';
+              document.getElementById('tabela-medidas').innerText = '';
+          });
+  }
+
+  /* listeners / init -------------------------------------------------------*/
+  selectModelo.addEventListener('change', carregarDetalhes);
+  carregarDetalhes();               // primeira carga
+})();
 </script>
 {% endblock %}
